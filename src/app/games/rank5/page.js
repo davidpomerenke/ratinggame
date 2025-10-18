@@ -11,7 +11,14 @@ export default function Rank5() {
   const [count, setCount] = useState(0);
 
   useEffect(() => {
-    setItems(getRandomMovies(movies, 5));
+    const newItems = getRandomMovies(movies, 5);
+    setItems(newItems);
+    
+    getRandomMovies(movies, 10).forEach(movie => {
+      const img = new Image();
+      const cached = localStorage.getItem(`poster-${movie.slug}`);
+      if (cached) img.src = cached;
+    });
   }, []);
 
   const moveToRank = (movie) => {
@@ -26,8 +33,15 @@ export default function Rank5() {
       }
     }
     setCount(c => c + 1);
-    setItems(getRandomMovies(movies, 5));
+    const newItems = getRandomMovies(movies, 5);
+    setItems(newItems);
     setRanked([]);
+    
+    getRandomMovies(movies, 10).forEach(movie => {
+      const img = new Image();
+      const cached = localStorage.getItem(`poster-${movie.slug}`);
+      if (cached) img.src = cached;
+    });
   };
 
   return (

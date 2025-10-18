@@ -40,15 +40,13 @@ const extractFilms = (html) => {
 
 const getDetails = async (endpoint, slug) => {
   try {
-    const data = await fetchJson(`https://letterboxd.com${endpoint}`);
+    const [data, filmHtml] = await Promise.all([
+      fetchJson(`https://letterboxd.com${endpoint}`),
+      fetch(`https://letterboxd.com/film/${slug}/`)
+    ]);
     
-    // Fetch actual poster image from film page
-    let posterUrl = null;
-    try {
-      const filmHtml = await fetch(`https://letterboxd.com/film/${slug}/`);
-      const posterMatch = filmHtml.match(/https:\/\/a\.ltrbxd\.com\/resized\/[^"]+\.jpg/);
-      if (posterMatch) posterUrl = posterMatch[0];
-    } catch {}
+    const posterMatch = filmHtml.match(/https:\/\/a\.ltrbxd\.com\/resized\/[^"]+\.jpg/);
+    const posterUrl = posterMatch ? posterMatch[0] : null;
     
     return {
       year: data.releaseYear,
@@ -68,7 +66,7 @@ const getDetails = async (endpoint, slug) => {
   console.log('Fetching page 1...');
   const html = await fetch('https://letterboxd.com/schnabil/films/');
   const pageMatch = html.match(/<li class="paginate-page"><a[^>]+>(\d+)<\/a><\/li>(?!.*<li class="paginate-page">)/);
-  const totalPages = 1 ;pageMatch ? parseInt(pageMatch[1]) : 1;
+  const totalPages = pageMatch ? parseInt(pageMatch[1]) : 1;
   console.log(`Found ${totalPages} pages`);
   
   const allFilms = [];

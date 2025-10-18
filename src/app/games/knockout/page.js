@@ -13,7 +13,14 @@ export default function Knockout() {
   const [champion, setChampion] = useState(null);
 
   useEffect(() => {
-    setContestants(getRandomMovies(movies, 8));
+    const newContestants = getRandomMovies(movies, 8);
+    setContestants(newContestants);
+    
+    newContestants.forEach(movie => {
+      const img = new Image();
+      const cached = localStorage.getItem(`poster-${movie.slug}`);
+      if (cached) img.src = cached;
+    });
   }, []);
 
   const choose = (winner) => {

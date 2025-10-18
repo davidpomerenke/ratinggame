@@ -10,13 +10,29 @@ export default function OneVsOne() {
   const [count, setCount] = useState(0);
 
   useEffect(() => {
-    setPair(getRandomMovies(movies, 2));
+    const newPair = getRandomMovies(movies, 2);
+    setPair(newPair);
+    
+    const nextPairs = getRandomMovies(movies, 6);
+    nextPairs.forEach(movie => {
+      const img = new Image();
+      const cached = localStorage.getItem(`poster-${movie.slug}`);
+      if (cached) img.src = cached;
+    });
   }, []);
 
   const choose = (winner, loser) => {
     recordComparison(winner.id, loser.id);
-    setPair(getRandomMovies(movies, 2));
+    const newPair = getRandomMovies(movies, 2);
+    setPair(newPair);
     setCount(c => c + 1);
+    
+    const next = getRandomMovies(movies, 4);
+    next.forEach(movie => {
+      const img = new Image();
+      const cached = localStorage.getItem(`poster-${movie.slug}`);
+      if (cached) img.src = cached;
+    });
   };
 
   if (pair.length !== 2) return null;

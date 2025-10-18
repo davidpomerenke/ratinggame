@@ -14,6 +14,12 @@ export default function Decks() {
     const shuffled = getRandomMovies(movies, 10);
     setLeftDeck(shuffled.slice(0, 5));
     setRightDeck(shuffled.slice(5, 10));
+    
+    shuffled.forEach(movie => {
+      const img = new Image();
+      const cached = localStorage.getItem(`poster-${movie.slug}`);
+      if (cached) img.src = cached;
+    });
   }, []);
 
   const choose = (side) => {
@@ -27,6 +33,12 @@ export default function Decks() {
       const shuffled = getRandomMovies(movies, 10);
       setLeftDeck(shuffled.slice(0, 5));
       setRightDeck(shuffled.slice(5, 10));
+      
+      shuffled.forEach(movie => {
+        const img = new Image();
+        const cached = localStorage.getItem(`poster-${movie.slug}`);
+        if (cached) img.src = cached;
+      });
     } else {
       if (side === 'left') {
         setRightDeck(rightDeck.slice(1));
