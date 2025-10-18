@@ -4,6 +4,7 @@ import Link from 'next/link';
 import movies from '../../movies.json';
 import { recordComparison, getRandomMovies } from '../../../lib/ranking';
 import MoviePoster from '../../../components/MoviePoster';
+import { useKeyboard } from '../../../hooks/useKeyboard';
 
 export default function Rank5() {
   const [items, setItems] = useState([]);
@@ -44,6 +45,16 @@ export default function Rank5() {
     });
   };
 
+  useKeyboard({
+    '1': () => items[0] && moveToRank(items[0]),
+    '2': () => items[1] && moveToRank(items[1]),
+    '3': () => items[2] && moveToRank(items[2]),
+    '4': () => items[3] && moveToRank(items[3]),
+    '5': () => items[4] && moveToRank(items[4]),
+    'Enter': () => ranked.length === 5 && finish(),
+    'Escape': () => window.location.href = '/'
+  });
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8">
       <div className="max-w-6xl mx-auto">
@@ -56,7 +67,9 @@ export default function Rank5() {
           </div>
         </div>
 
-        <p className="text-gray-400 text-center mb-8">Click movies from best to worst</p>
+        <p className="text-gray-400 text-center mb-8">
+          Click or press <kbd className="px-2 py-1 bg-slate-700 rounded text-xs">1-5</kbd> from best to worst
+        </p>
 
         <div className="grid grid-cols-5 gap-4 mb-8">
           {items.map((movie) => (

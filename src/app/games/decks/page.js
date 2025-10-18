@@ -4,6 +4,7 @@ import Link from 'next/link';
 import movies from '../../movies.json';
 import { recordComparison, getRandomMovies } from '../../../lib/ranking';
 import MoviePoster from '../../../components/MoviePoster';
+import { useKeyboard } from '../../../hooks/useKeyboard';
 
 export default function Decks() {
   const [leftDeck, setLeftDeck] = useState([]);
@@ -47,6 +48,14 @@ export default function Decks() {
       }
     }
   };
+
+  useKeyboard({
+    'ArrowLeft': () => leftDeck[0] && choose('left'),
+    'ArrowRight': () => rightDeck[0] && choose('right'),
+    '1': () => leftDeck[0] && choose('left'),
+    '2': () => rightDeck[0] && choose('right'),
+    'Escape': () => window.location.href = '/'
+  });
 
   if (leftDeck.length === 0 || rightDeck.length === 0) return null;
 

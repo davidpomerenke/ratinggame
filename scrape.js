@@ -1,6 +1,8 @@
 const fs = require('fs');
 const https = require('https');
 
+const OUTPUT_FILE = 'src/app/movies.json';
+
 const fetch = (url) => new Promise((resolve, reject) => {
   https.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } }, (res) => {
     let data = '';
@@ -10,6 +12,18 @@ const fetch = (url) => new Promise((resolve, reject) => {
 });
 
 const fetchJson = (url) => fetch(url).then(JSON.parse);
+
+const loadExisting = () => {
+  try {
+    return JSON.parse(fs.readFileSync(OUTPUT_FILE, 'utf-8'));
+  } catch {
+    return [];
+  }
+};
+
+const saveMovies = (movies) => {
+  fs.writeFileSync(OUTPUT_FILE, JSON.stringify(movies, null, 2));
+};
 
 const extractFilms = (html) => {
   const films = [];
@@ -63,7 +77,13 @@ const getDetails = async (endpoint, slug) => {
 };
 
 (async () => {
+  console.log('Loading existing movies...');
+  const existing = loadExisting();
+  const existingMap = new Map(existing.map(m => [m.slug, m]));
+  
+  console.log(`Found ${existing.length} existing movies`);
   console.log('Fetching page 1...');
+  
   const html = await fetch('https://letterboxd.com/schnabil/films/');
   const pageMatch = html.match(/<li class="paginate-page"><a[^>]+>(\d+)<\/a><\/li>(?!.*<li class="paginate-page">)/);
   const totalPages = pageMatch ? parseInt(pageMatch[1]) : 1;
@@ -79,18 +99,43 @@ const getDetails = async (endpoint, slug) => {
     allFilms.push(...extractFilms(pageHtml));
   }
   
-  console.log(`Found ${allFilms.length} films. Fetching details...`);
+  console.log(`\nFound ${allFilms.length} films. Fetching details...\n`);
+  
+  const movies = [];
+  let updated = 0;
+  let skipped = 0;
+  
   for (let i = 0; i < allFilms.length; i++) {
     const film = allFilms[i];
-    console.log(`  ${i + 1}/${allFilms.length}: ${film.name}`);
+    const existing = existingMap.get(film.slug);
+    
+    const hasRealPoster = existing?.poster?.includes('a.ltrbxd.com');
+    const hasDetails = existing?.year && existing?.directors?.length > 0;
+    
+    if (hasRealPoster && hasDetails) {
+      movies.push(existing);
+      skipped++;
+      console.log(`  ${i + 1}/${allFilms.length}: ${film.name} [SKIP]`);
+      continue;
+    }
+    
+    console.log(`  ${i + 1}/${allFilms.length}: ${film.name} [FETCH]`);
     const details = await getDetails(film.endpoint, film.slug);
     Object.assign(film, details);
     if (details.posterImage) film.poster = details.posterImage;
     delete film.endpoint;
     delete film.posterImage;
+    
+    movies.push(film);
+    updated++;
+    
+    saveMovies(movies);
+    await new Promise(resolve => setTimeout(resolve, 100));
   }
   
-  fs.writeFileSync('src/app/movies.json', JSON.stringify(allFilms, null, 2));
-  console.log(`Saved ${allFilms.length} films to src/app/movies.json`);
+  console.log(`\nDone!`);
+  console.log(`  Updated: ${updated}`);
+  console.log(`  Skipped: ${skipped}`);
+  console.log(`  Total: ${movies.length}`);
+  console.log(`\nSaved to ${OUTPUT_FILE}`);
 })();
-

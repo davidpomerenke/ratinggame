@@ -4,6 +4,8 @@ import Link from 'next/link';
 import movies from '../../movies.json';
 import { recordComparison, getRandomMovies } from '../../../lib/ranking';
 import MoviePoster from '../../../components/MoviePoster';
+import { useKeyboard } from '../../../hooks/useKeyboard';
+import { createConfetti } from '../../../lib/confetti';
 
 export default function Knockout() {
   const [round, setRound] = useState(1);
@@ -36,6 +38,7 @@ export default function Knockout() {
     } else {
       if (newWinners.length === 1) {
         setChampion(newWinners[0]);
+        setTimeout(() => createConfetti(), 100);
       } else {
         setContestants(newWinners);
         setWinners([]);
@@ -44,6 +47,14 @@ export default function Knockout() {
       }
     }
   };
+
+  useKeyboard({
+    'ArrowLeft': () => !champion && pair[0] && choose(pair[0]),
+    'ArrowRight': () => !champion && pair[1] && choose(pair[1]),
+    '1': () => !champion && pair[0] && choose(pair[0]),
+    '2': () => !champion && pair[1] && choose(pair[1]),
+    'Escape': () => window.location.href = '/'
+  });
 
   if (contestants.length === 0) return null;
 
